@@ -1,2 +1,2 @@
 # filterImageHist
-Image Filter of Hist Opencv
+Image Filter of Hist - Opencv
