@@ -56,6 +56,7 @@ public class filterLoader extends JLabel{
     static JPopupMenu popup;
     static boolean originalFlag = false, grayFlag = false, colorFlag = false;
     static JFileChooser fc = new JFileChooser();
+    static boolean haveImg = false;
     // Create a constructor method  
     public filterLoader(){
       super();
@@ -149,21 +150,21 @@ public class filterLoader extends JLabel{
             				fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
             				int status = fc.showOpenDialog(null);
             				if (status == JFileChooser.APPROVE_OPTION) {
-            				      File selectedFile = fc.getSelectedFile();
+            				    File selectedFile = fc.getSelectedFile();
             				      /*System.out.println(selectedFile.getParent());
             				      System.out.println(selectedFile.getName());
             				      System.out.println(selectedFile);*/
             				      
-            				      //LOAD
-            				      matOriginal = Highgui.imread(String.valueOf(selectedFile) ,Highgui.CV_LOAD_IMAGE_COLOR);
+            				    //LOAD
+            				    matOriginal = Highgui.imread(String.valueOf(selectedFile) ,Highgui.CV_LOAD_IMAGE_COLOR);
+            				    haveImg = true;
             				} 
             				else if (status == JFileChooser.CANCEL_OPTION) {
             				      System.out.println("JFileChooser.CANCEL_OPTION");
             				}
-            				
-                        	originalFlag = true;
-                        	grayFlag = false;
-                        	colorFlag = false;
+            				originalFlag = true;
+                          	grayFlag = false;
+                          	colorFlag = false;
                         }
                     });
                     popup.show((Component) e.getSource(), e.getX(), e.getY());
@@ -185,7 +186,7 @@ public class filterLoader extends JLabel{
     	});
     }
     
-  //!Find OPENCV JNI in host PC
+    //!Find OPENCV JNI in host PC
     private static boolean findOpenCV(){
         boolean result = false;
         String libOpencv = new String();
@@ -262,17 +263,21 @@ public class filterLoader extends JLabel{
 		layoutIni();
 		
 		while(true){
-			if(originalFlag){
-				showOneImag(matOriginal);
-				Thread.sleep(100);;
-			}
-			else if(grayFlag){
-				showOneImag(grayHist(matOriginal));
-				Thread.sleep(100);
-			}
-			else if(colorFlag){
-				showOneImag(colorHist(matOriginal));
-				Thread.sleep(100);
+			if(haveImg){
+				if(originalFlag){
+					showOneImag(matOriginal);
+					Thread.sleep(100);;
+				}
+				else if(grayFlag){
+					showOneImag(grayHist(matOriginal));
+					Thread.sleep(100);
+				}
+				else if(colorFlag){
+					showOneImag(colorHist(matOriginal));
+					Thread.sleep(100);
+				}
+				else
+					Thread.sleep(100);
 			}
 			else
 				Thread.sleep(100);
@@ -288,7 +293,11 @@ public class filterLoader extends JLabel{
 	
 	//!GRAY
 	public static Mat grayHist(Mat img){
+		if(matGrayTemp != null)
+			matGrayTemp.dump();
 		matGrayTemp = new Mat(img.rows(), img.cols(), CvType.CV_8UC1);
+		if(matGray != null)
+			matGray.dump();
 		matGray = new Mat(img.rows(), img.cols(), CvType.CV_8UC3);
 		Imgproc.cvtColor(img, matGrayTemp, Imgproc.COLOR_RGB2GRAY);
 		Imgproc.equalizeHist(matGrayTemp, matGrayTemp);
@@ -299,6 +308,8 @@ public class filterLoader extends JLabel{
 	
 	//!COLOR
 	public static Mat colorHist(Mat img){
+		if(matColor != null)
+			matColor.dump();
 		matColor = new Mat(img.rows(), img.cols(), CvType.CV_8UC3);
 		lRgb = new ArrayList<Mat>(3);
 		Core.split(img, lRgb);
@@ -312,6 +323,10 @@ public class filterLoader extends JLabel{
 		Imgproc.equalizeHist(mB, mB);
 		lRgb.set(2, mB);
 		Core.merge(lRgb, matColor);
+		mR.dump();
+		mG.dump();
+		mB.dump();
+		lRgb.clear();
 		
 		return matColor;
 	}
